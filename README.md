@@ -36,3 +36,4 @@ ___
 3) Import the template on your zabbix server.
 4) Create a dummy host with zabbix agent interface as localhost for example. If you assign a proxy , the proxy will be issuing the http requests.
 5) Assign the maxscale-vip template to the dummy host.
+6) Configure template`s macros with custom values.
