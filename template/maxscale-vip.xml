@@ -1,0 +1,1263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>6.0</version>
+    <date>2022-12-19T08:05:05Z</date>
+    <groups>
+        <group>
+            <uuid>db8c6a5e33a54db7a8016e92a3737c99</uuid>
+            <name>maxscale_clusters</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <uuid>e53bf07c0a7b403d928c4c6ada37eff4</uuid>
+            <template>maxscale-vip</template>
+            <name>maxscale-vip</name>
+            <groups>
+                <group>
+                    <name>maxscale_clusters</name>
+                </group>
+            </groups>
+            <items>
+                <item>
+                    <uuid>05c0402f6d74439997af6af32719b8df</uuid>
+                    <name>Maxscale data</name>
+                    <type>HTTP_AGENT</type>
+                    <key>maxscale.host.data</key>
+                    <delay>30s</delay>
+                    <history>0</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <authtype>BASIC</authtype>
+                    <username>{$MAXSCALE.HTTP.USER}</username>
+                    <password>{$MAXSCALE.HTTP.PASSWORD}</password>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <parameters>
+                                <parameter>$.data</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                    <url>{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/maxscale</url>
+                </item>
+                <item>
+                    <uuid>e90cf1ac4a254bd6b30b9ae87947fbc3</uuid>
+                    <name>Maxscale uptime</name>
+                    <type>DEPENDENT</type>
+                    <key>maxscale.host.uptime</key>
+                    <delay>0</delay>
+                    <history>1h</history>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <parameters>
+                                <parameter>$.attributes.uptime</parameter>
+                            </parameters>
+                            <error_handler>CUSTOM_VALUE</error_handler>
+                            <error_handler_params>0</error_handler_params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>maxscale.host.data</key>
+                    </master_item>
+                    <triggers>
+                        <trigger>
+                            <uuid>d8a209fdb9bc4d7ba064991ea06ecc44</uuid>
+                            <expression>last(/maxscale-vip/maxscale.host.uptime)&lt;1000</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>last(/maxscale-vip/maxscale.host.uptime)&gt;86400</recovery_expression>
+                            <name>Maxscale uptime is low</name>
+                            <priority>WARNING</priority>
+                            <description>Maxscale low uptime means the service was recently restarted. This may indicate a crash. The trigger will be automatically be resolved if maxscale uptime is higher than 24h.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>2e9f69ab9bc94b74bf390439dbed5d3e</uuid>
+                    <name>Maxscale version</name>
+                    <type>DEPENDENT</type>
+                    <key>maxscale.host.version</key>
+                    <delay>0</delay>
+                    <history>1h</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <parameters>
+                                <parameter>$.attributes.version</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>maxscale.host.data</key>
+                    </master_item>
+                    <triggers>
+                        <trigger>
+                            <uuid>0ab102219239456cbd5b0ce57c779ded</uuid>
+                            <expression>last(/maxscale-vip/maxscale.host.version,#1)&lt;&gt;last(/maxscale-vip/maxscale.host.version,#2) and length(last(/maxscale-vip/maxscale.host.version,#2))&gt;0</expression>
+                            <name>Maxscale: Version has changed</name>
+                            <event_name>Maxscale: Version has changed (new version value received: {ITEM.VALUE})</event_name>
+                            <priority>INFO</priority>
+                            <description>Maxscale version has changed. Ack to close</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+            </items>
+            <discovery_rules>
+                <discovery_rule>
+                    <uuid>4a2693f9abd74555b50d1f9af8b506cd</uuid>
+                    <name>Maxscale listeners name discovery</name>
+                    <type>HTTP_AGENT</type>
+                    <key>maxscale.listeners.name</key>
+                    <delay>1h</delay>
+                    <authtype>BASIC</authtype>
+                    <username>{$MAXSCALE.HTTP.USER}</username>
+                    <password>{$MAXSCALE.HTTP.PASSWORD}</password>
+                    <item_prototypes>
+                        <item_prototype>
+                            <uuid>d35273287f6140a1b147fe44e5b981d2</uuid>
+                            <name>{#MAXSCALE_LISTENER_NAME} listener data</name>
+                            <type>HTTP_AGENT</type>
+                            <key>maxscale.listener.data[{#MAXSCALE_LISTENER_NAME}]</key>
+                            <delay>30s</delay>
+                            <history>0</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <authtype>BASIC</authtype>
+                            <username>{$MAXSCALE.HTTP.USER}</username>
+                            <password>{$MAXSCALE.HTTP.PASSWORD}</password>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.data</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <url>{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/listeners/{#MAXSCALE_LISTENER_NAME}</url>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_LISTENER_NAME} listener data</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>3b7546b722d141b790d85aa6117d29e4</uuid>
+                            <name>{#MAXSCALE_LISTENER_NAME} listener state</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.listener.state[{#MAXSCALE_LISTENER_NAME}]</key>
+                            <delay>0</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.state</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.listener.data[{#MAXSCALE_LISTENER_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_LISTENER_NAME} listener data</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                    </item_prototypes>
+                    <url>{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/listeners</url>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#MAXSCALE_LISTENER_NAME}</lld_macro>
+                            <path>$.id</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <parameters>
+                                <parameter>$.data</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                </discovery_rule>
+                <discovery_rule>
+                    <uuid>bee49b7d5f7946f48c248d1a05d9f5db</uuid>
+                    <name>Maxscale monitors name discovery</name>
+                    <type>HTTP_AGENT</type>
+                    <key>maxscale.monitors.name</key>
+                    <delay>1h</delay>
+                    <authtype>BASIC</authtype>
+                    <username>{$MAXSCALE.HTTP.USER}</username>
+                    <password>{$MAXSCALE.HTTP.PASSWORD}</password>
+                    <item_prototypes>
+                        <item_prototype>
+                            <uuid>c92d009c84684c9c826691d789123e6f</uuid>
+                            <name>{#MAXSCALE_MONITOR_NAME} monitor data</name>
+                            <type>HTTP_AGENT</type>
+                            <key>maxscale.monitor.data[{#MAXSCALE_MONITOR_NAME}]</key>
+                            <delay>30s</delay>
+                            <history>0</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <authtype>BASIC</authtype>
+                            <username>{$MAXSCALE.HTTP.USER}</username>
+                            <password>{$MAXSCALE.HTTP.PASSWORD}</password>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.data</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <url>{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/monitors/{#MAXSCALE_MONITOR_NAME}</url>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_MONITOR_NAME} monitor data</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>144514c9d1234f1bae1fdd7cd3d159be</uuid>
+                            <name>{#MAXSCALE_MONITOR_NAME} monitor state</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.monitor.state[{#MAXSCALE_MONITOR_NAME}]</key>
+                            <delay>0</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.state</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.monitor.data[{#MAXSCALE_MONITOR_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_MONITOR_NAME} monitor data</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                    </item_prototypes>
+                    <url>{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/monitors</url>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#MAXSCALE_MONITOR_NAME}</lld_macro>
+                            <path>$.id</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <parameters>
+                                <parameter>$.data</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                </discovery_rule>
+                <discovery_rule>
+                    <uuid>93705f765b6b44ecaa8efd93b632fe7e</uuid>
+                    <name>Maxscale backend servers name discovery</name>
+                    <type>HTTP_AGENT</type>
+                    <key>maxscale.servers.name</key>
+                    <delay>1h</delay>
+                    <authtype>BASIC</authtype>
+                    <username>{$MAXSCALE.HTTP.USER}</username>
+                    <password>{$MAXSCALE.HTTP.PASSWORD}</password>
+                    <item_prototypes>
+                        <item_prototype>
+                            <uuid>db3b513746a642ecb95cb21b528c9343</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} statistics max connections</name>
+                            <type>DEPENDENT</type>
+                            <key>attributes.statistics.max_connections[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>0</delay>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.statistics.max_connections</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale-Sessions</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>e743e85c4c544622b32a50f8d0e696f5</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} statistics reused connections</name>
+                            <type>DEPENDENT</type>
+                            <key>attributes.statistics.reused_connections[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>0</delay>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.statistics.reused_connections</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale-Sessions</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>fe83299a87db4c33a319dd97aedc464f</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} data</name>
+                            <type>HTTP_AGENT</type>
+                            <key>maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>30s</delay>
+                            <history>0</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <authtype>BASIC</authtype>
+                            <username>{$MAXSCALE.HTTP.USER}</username>
+                            <password>{$MAXSCALE.HTTP.PASSWORD}</password>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.data</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <url>{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/servers/{#MAXSCALE_BACKEND_NAME}</url>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>f63a6b5f9b5d41fd9d7a35701de0bcdc</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} query stats avg_selects_per_session</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.server.query_stats.avg_selects_per_session[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>0</delay>
+                            <description>Average number of selects per session.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.avg_selects_per_session</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>91f7e4e6d2664e22b8795bc1afafe9e8</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} query stats avg_sess_active_pct</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.server.query_stats.avg_sess_active_pct[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>0</delay>
+                            <value_type>FLOAT</value_type>
+                            <description>Average percentage of time client sessions were active. 0% means connections were opened but never used.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.avg_sess_active_pct</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                                <step>
+                                    <type>STR_REPLACE</type>
+                                    <parameters>
+                                        <parameter>([a-z]+)</parameter>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>66a29fac9fd54f90988ed4f5dbac1941</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} query stats avg_sess_duration</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.server.query_stats.avg_sess_duration[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>0</delay>
+                            <value_type>FLOAT</value_type>
+                            <units>min</units>
+                            <description>Average duration of a client session to this server.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.avg_sess_duration</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                                <step>
+                                    <type>JAVASCRIPT</type>
+                                    <parameters>
+                                        <parameter>regex = '[a-z]+'
+suffix = value.match(regex)[0];
+if (suffix == &quot;ns&quot;)
+    value = parseFloat(value.replace(suffix,'')) / 60000000000;
+else if (suffix == &quot;us&quot;)
+    value = parseFloat(value.replace(suffix,'')) / 60000000;
+else if (suffix == &quot;ms&quot;)
+    value = parseFloat(value.replace(suffix,'')) / 60000;
+else if (suffix == &quot;s&quot;)
+    value = parseFloat(value.replace(suffix,'')) / 60;
+else if (suffix == &quot;min&quot;)
+    value = parseFloat(value.replace(suffix,'')) ;
+else if (suffix == &quot;h&quot;)
+    value = parseFloat(value.replace(suffix,'')) * 60;
+return value;</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>ceacbb12e4414b9dba92616df6c5d6c0</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} query stats read</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.server.query_stats.read[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>0</delay>
+                            <description>Total number of reads.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.read</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>379518ec1fd24246a993137f8123b282</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} query stats total</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.server.query_stats.total[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>0</delay>
+                            <description>Total number of queries.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.total</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>8ea5c0b43df840fa8ae59a633ce867a4</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} query stats write</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.server.query_stats.write[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>0</delay>
+                            <description>Total number of writes.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.write</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>50c23fefbe834fde8b140204930e59ce</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} server query statistics</name>
+                            <type>HTTP_AGENT</type>
+                            <key>maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>30s</delay>
+                            <history>0</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <authtype>BASIC</authtype>
+                            <username>{$MAXSCALE.HTTP.USER}</username>
+                            <password>{$MAXSCALE.HTTP.PASSWORD}</password>
+                            <description>Statistics for each configured and used server consisting of the following fields.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$..server_query_statistics.[?(@.id == '{#MAXSCALE_BACKEND_NAME}')].first()</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <url>{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/services/</url>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>da2dd0c4433945dd9c856dc209a9a8b8</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} state</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.server.state[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>0</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.state</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>8c34413db38941eabbe085e0d1e5a16c</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} statistics active operations</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.server.statistics.active_operations[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>0</delay>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.statistics.active_operations</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>dbe6c6abfd7d4ecf978c0b8365e345b7</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} statistics adaptive average select time</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.server.statistics.adapt_avg_select_time[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>0</delay>
+                            <value_type>FLOAT</value_type>
+                            <units>ms</units>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.statistics.adaptive_avg_select_time</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                                <step>
+                                    <type>JAVASCRIPT</type>
+                                    <parameters>
+                                        <parameter>regex = '[a-z]+';
+suffix = value.match(regex);
+if (suffix == &quot;ps&quot;)
+    value = parseFloat(value.replace(suffix,'')) * (10 ** -9);
+else if (suffix == &quot;ns&quot;)
+    value = parseFloat(value.replace(suffix,'')) * (10 ** -6);
+else if (suffix == &quot;us&quot;)
+    value = parseFloat(value.replace(suffix,'')) * (10 ** -3);
+else if (suffix == &quot;ms&quot;)
+    value = parseFloat(value.replace(suffix,''));
+else if (suffix == &quot;cs&quot;)
+    value = parseFloat(value.replace(suffix,'')) * 10;
+else if (suffix == &quot;ds&quot;)
+    value = parseFloat(value.replace(suffix,'')) * (10 ** 2);
+else if (suffix == &quot;s&quot;)
+    value = parseFloat(value.replace(suffix,'')) * (10 ** 3);
+else if (suffix == &quot;min&quot;)
+    value = parseFloat(value.replace(suffix,'')) * 60 * (10 ** 3);
+return value;</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>9a39e3965dc64807b8e793386c2ae141</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} statistics connections</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.server.statistics.connections[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>0</delay>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.statistics.connections</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale-Sessions</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>7833f2f3a5ac4201aba5be8da783338d</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} statistics persistent connections</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.server.statistics.persistent_connections[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>0</delay>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.statistics.persistent_connections</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale-Sessions</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>ae87b34243254428a66e80e93112fec3</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} statistics routed packets</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.server.statistics.route_packets[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>0</delay>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.statistics.routed_packets</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>144720124a684f8d8e0cd28cb9088c58</uuid>
+                            <name>{#MAXSCALE_BACKEND_NAME} statistics total connections</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.server.statistics.total_connections[{#MAXSCALE_BACKEND_NAME}]</key>
+                            <delay>0</delay>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.statistics.total_connections</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale-Sessions</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_BACKEND_NAME} backend stats</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <uuid>029ec944c51c424cb91ec5aaf05e47f6</uuid>
+                            <name>SQL Proxy View - {#MAXSCALE_BACKEND_NAME}: Queries</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <item>
+                                        <host>maxscale-vip</host>
+                                        <key>maxscale.server.query_stats.read[{#MAXSCALE_BACKEND_NAME}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <color>F63100</color>
+                                    <item>
+                                        <host>maxscale-vip</host>
+                                        <key>maxscale.server.query_stats.write[{#MAXSCALE_BACKEND_NAME}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>3</sortorder>
+                                    <color>2774A4</color>
+                                    <item>
+                                        <host>maxscale-vip</host>
+                                        <key>maxscale.server.query_stats.total[{#MAXSCALE_BACKEND_NAME}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                        <graph_prototype>
+                            <uuid>db56651670f0434580ad09daaf10fdde</uuid>
+                            <name>SQL Proxy View: Queries - {#MAXSCALE_BACKEND_NAME}: Adaptive Average Select Time</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <item>
+                                        <host>maxscale-vip</host>
+                                        <key>maxscale.server.statistics.adapt_avg_select_time[{#MAXSCALE_BACKEND_NAME}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                        <graph_prototype>
+                            <uuid>6ea61f17a3c5435a8f4e992fd965fc87</uuid>
+                            <name>SQL Proxy View: {#MAXSCALE_BACKEND_NAME}  Persistent Connections</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <item>
+                                        <host>maxscale-vip</host>
+                                        <key>maxscale.server.statistics.persistent_connections[{#MAXSCALE_BACKEND_NAME}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                    <timeout>5s</timeout>
+                    <url>{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/servers</url>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#MAXSCALE_BACKEND_NAME}</lld_macro>
+                            <path>$.name</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <parameters>
+                                <parameter>$.data[:].attributes</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                </discovery_rule>
+                <discovery_rule>
+                    <uuid>5dfcccb3c33d43ceb29db9a931f20cd3</uuid>
+                    <name>Maxscale services name discovery</name>
+                    <type>HTTP_AGENT</type>
+                    <key>maxscale.services.name</key>
+                    <delay>1h</delay>
+                    <authtype>BASIC</authtype>
+                    <username>{$MAXSCALE.HTTP.USER}</username>
+                    <password>{$MAXSCALE.HTTP.PASSWORD}</password>
+                    <item_prototypes>
+                        <item_prototype>
+                            <uuid>b56a5e1c61674f2a8dbd104f9514db89</uuid>
+                            <name>{#MAXSCALE_SERVICE_NAME} service data</name>
+                            <type>HTTP_AGENT</type>
+                            <key>maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]</key>
+                            <delay>30s</delay>
+                            <history>0</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <authtype>BASIC</authtype>
+                            <username>{$MAXSCALE.HTTP.USER}</username>
+                            <password>{$MAXSCALE.HTTP.PASSWORD}</password>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.data</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <url>{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/services/{#MAXSCALE_SERVICE_NAME}</url>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_SERVICE_NAME} service data</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>4c99b547d7424fc8b46ca4af73d39be2</uuid>
+                            <name>{#MAXSCALE_SERVICE_NAME} service queries executed</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.service.queries[{#MAXSCALE_SERVICE_NAME}]</key>
+                            <delay>0</delay>
+                            <description>Number of queries executed through this service.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.router_diagnostics.queries</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_SERVICE_NAME} service data</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>b13ca0d6c7534b3d8ff89658fe977303</uuid>
+                            <name>{#MAXSCALE_SERVICE_NAME} service replayed transactions</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.service.replayed_transactions[{#MAXSCALE_SERVICE_NAME}]</key>
+                            <delay>0</delay>
+                            <description>Number of replayed transactions.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.router_diagnostics.replayed_transactions</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_SERVICE_NAME} service data</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>f64a2bf921e84c3b80e10dfbdc39bdbb</uuid>
+                            <name>{#MAXSCALE_SERVICE_NAME} service queries routed all</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.service.route_all[{#MAXSCALE_SERVICE_NAME}]</key>
+                            <delay>0</delay>
+                            <description>Number of session commands routed to all servers.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.router_diagnostics.route_all</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_SERVICE_NAME} service data</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>177e5e80bf9647e8981ea915afa81c1b</uuid>
+                            <name>{#MAXSCALE_SERVICE_NAME} service queries routed to master</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.service.route_master[{#MAXSCALE_SERVICE_NAME}]</key>
+                            <delay>0</delay>
+                            <description>Number of writes routed to master.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.router_diagnostics.route_master</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_SERVICE_NAME} service data</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>e58733ac73bb4ed0869a5c1fbdc4144d</uuid>
+                            <name>{#MAXSCALE_SERVICE_NAME} service queries routed to slave</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.service.route_slave[{#MAXSCALE_SERVICE_NAME}]</key>
+                            <delay>0</delay>
+                            <description>Number of reads routed to slaves.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.router_diagnostics.route_slave</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_SERVICE_NAME} service data</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>563afc1a361b48478b8431897b2aad32</uuid>
+                            <name>{#MAXSCALE_SERVICE_NAME} service explicit  read-only transactions</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.service.ro_transactions[{#MAXSCALE_SERVICE_NAME}]</key>
+                            <delay>0</delay>
+                            <description>Number of explicit read-only transactions</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.router_diagnostics.ro_transactions</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_SERVICE_NAME} service data</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>90338c9bb3d1448694d6ab7461d0adb1</uuid>
+                            <name>{#MAXSCALE_SERVICE_NAME} service explicit read-write transactions</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.service.rw_transactions[{#MAXSCALE_SERVICE_NAME}]</key>
+                            <delay>0</delay>
+                            <description>Number of explicit read-write transactions.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.router_diagnostics.rw_transactions</parameter>
+                                    </parameters>
+                                    <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_SERVICE_NAME} service data</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>07bf57a122ea44c982105ac51ed70393</uuid>
+                            <name>{#MAXSCALE_SERVICE_NAME} service state</name>
+                            <type>DEPENDENT</type>
+                            <key>maxscale.service.state[{#MAXSCALE_SERVICE_NAME}]</key>
+                            <delay>0</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.attributes.state</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale {#MAXSCALE_SERVICE_NAME} service data</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                    </item_prototypes>
+                    <url>{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/services</url>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#MAXSCALE_SERVICE_NAME}</lld_macro>
+                            <path>$.id</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <parameters>
+                                <parameter>$.data</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                </discovery_rule>
+                <discovery_rule>
+                    <uuid>dff7900f4a20489293cabe06c015f298</uuid>
+                    <name>Maxscale session discovery</name>
+                    <type>HTTP_AGENT</type>
+                    <key>maxscale.session.ip</key>
+                    <delay>30m</delay>
+                    <authtype>BASIC</authtype>
+                    <username>{$MAXSCALE.HTTP.USER}</username>
+                    <password>{$MAXSCALE.HTTP.PASSWORD}</password>
+                    <lifetime>20d</lifetime>
+                    <item_prototypes>
+                        <item_prototype>
+                            <uuid>0fcb6e4a295d43138fc68be6b39283ff</uuid>
+                            <name>{#MAXSCALE_SESSION_IP} number of connections</name>
+                            <type>HTTP_AGENT</type>
+                            <key>maxscale.session.data[{#MAXSCALE_SESSION_IP}]</key>
+                            <delay>30s</delay>
+                            <authtype>BASIC</authtype>
+                            <username>{$MAXSCALE.HTTP.USER}</username>
+                            <password>{$MAXSCALE.HTTP.PASSWORD}</password>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.data[?(@.attributes.remote == '{#MAXSCALE_SESSION_IP}')].length()</parameter>
+                                    </parameters>
+                                    <error_handler>CUSTOM_VALUE</error_handler>
+                                    <error_handler_params>0</error_handler_params>
+                                </step>
+                            </preprocessing>
+                            <url>{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/sessions/</url>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Maxscale-Sessions</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                    </item_prototypes>
+                    <url>{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/sessions</url>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#MAXSCALE_SESSION_IP}</lld_macro>
+                            <path>$.ip</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <parameters>
+                                <parameter>$.data[*].attributes.remote</parameter>
+                            </parameters>
+                        </step>
+                        <step>
+                            <type>STR_REPLACE</type>
+                            <parameters>
+                                <parameter>[</parameter>
+                                <parameter/>
+                            </parameters>
+                        </step>
+                        <step>
+                            <type>STR_REPLACE</type>
+                            <parameters>
+                                <parameter>]</parameter>
+                                <parameter/>
+                            </parameters>
+                        </step>
+                        <step>
+                            <type>STR_REPLACE</type>
+                            <parameters>
+                                <parameter>&quot;</parameter>
+                                <parameter/>
+                            </parameters>
+                        </step>
+                        <step>
+                            <type>JAVASCRIPT</type>
+                            <parameters>
+                                <parameter>ips=value.split(&quot;,&quot;);
+json_ips='{&quot;data&quot;:[';
+list_ips=[];
+for (i=0; i &lt; ips.length; i++){
+   if(list_ips.indexOf(ips[i]) &lt; 0) {
+    json_ips+='{&quot;ip&quot;:&quot;' + ips[i] + '&quot;},';
+    list_ips.push(ips[i]);
+   }
+}
+json_ips = json_ips.substr(0, json_ips.lastIndexOf(',')) + ''
+json_ips+=']}';
+return json_ips;</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                </discovery_rule>
+            </discovery_rules>
+            <tags>
+                <tag>
+                    <tag>application</tag>
+                    <value>maxscale</value>
+                </tag>
+            </tags>
+            <macros>
+                <macro>
+                    <macro>{$MAXSCALE.HTTP.ADDRESS}</macro>
+                </macro>
+                <macro>
+                    <macro>{$MAXSCALE.HTTP.PASSWORD}</macro>
+                    <value>mariadb</value>
+                </macro>
+                <macro>
+                    <macro>{$MAXSCALE.HTTP.PORT}</macro>
+                    <value>8989</value>
+                </macro>
+                <macro>
+                    <macro>{$MAXSCALE.HTTP.SCHEMA}</macro>
+                    <value>http://</value>
+                </macro>
+                <macro>
+                    <macro>{$MAXSCALE.HTTP.USER}</macro>
+                    <value>admin</value>
+                </macro>
+            </macros>
+        </template>
+    </templates>
+</zabbix_export>

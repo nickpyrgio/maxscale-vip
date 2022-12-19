@@ -1,0 +1,1221 @@
+{
+    "zabbix_export": {
+        "version": "6.0",
+        "date": "2022-12-19T08:05:10Z",
+        "groups": [
+            {
+                "uuid": "db8c6a5e33a54db7a8016e92a3737c99",
+                "name": "maxscale_clusters"
+            }
+        ],
+        "templates": [
+            {
+                "uuid": "e53bf07c0a7b403d928c4c6ada37eff4",
+                "template": "maxscale-vip",
+                "name": "maxscale-vip",
+                "groups": [
+                    {
+                        "name": "maxscale_clusters"
+                    }
+                ],
+                "items": [
+                    {
+                        "uuid": "05c0402f6d74439997af6af32719b8df",
+                        "name": "Maxscale data",
+                        "type": "HTTP_AGENT",
+                        "key": "maxscale.host.data",
+                        "delay": "30s",
+                        "history": "0",
+                        "trends": "0",
+                        "value_type": "TEXT",
+                        "authtype": "BASIC",
+                        "username": "{$MAXSCALE.HTTP.USER}",
+                        "password": "{$MAXSCALE.HTTP.PASSWORD}",
+                        "preprocessing": [
+                            {
+                                "type": "JSONPATH",
+                                "parameters": [
+                                    "$.data"
+                                ]
+                            }
+                        ],
+                        "url": "{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/maxscale"
+                    },
+                    {
+                        "uuid": "e90cf1ac4a254bd6b30b9ae87947fbc3",
+                        "name": "Maxscale uptime",
+                        "type": "DEPENDENT",
+                        "key": "maxscale.host.uptime",
+                        "delay": "0",
+                        "history": "1h",
+                        "preprocessing": [
+                            {
+                                "type": "JSONPATH",
+                                "parameters": [
+                                    "$.attributes.uptime"
+                                ],
+                                "error_handler": "CUSTOM_VALUE",
+                                "error_handler_params": "0"
+                            }
+                        ],
+                        "master_item": {
+                            "key": "maxscale.host.data"
+                        },
+                        "triggers": [
+                            {
+                                "uuid": "d8a209fdb9bc4d7ba064991ea06ecc44",
+                                "expression": "last(/maxscale-vip/maxscale.host.uptime)<1000",
+                                "recovery_mode": "RECOVERY_EXPRESSION",
+                                "recovery_expression": "last(/maxscale-vip/maxscale.host.uptime)>86400",
+                                "name": "Maxscale uptime is low",
+                                "priority": "WARNING",
+                                "description": "Maxscale low uptime means the service was recently restarted. This may indicate a crash. The trigger will be automatically be resolved if maxscale uptime is higher than 24h.",
+                                "manual_close": "YES"
+                            }
+                        ]
+                    },
+                    {
+                        "uuid": "2e9f69ab9bc94b74bf390439dbed5d3e",
+                        "name": "Maxscale version",
+                        "type": "DEPENDENT",
+                        "key": "maxscale.host.version",
+                        "delay": "0",
+                        "history": "1h",
+                        "trends": "0",
+                        "value_type": "TEXT",
+                        "preprocessing": [
+                            {
+                                "type": "JSONPATH",
+                                "parameters": [
+                                    "$.attributes.version"
+                                ]
+                            }
+                        ],
+                        "master_item": {
+                            "key": "maxscale.host.data"
+                        },
+                        "triggers": [
+                            {
+                                "uuid": "0ab102219239456cbd5b0ce57c779ded",
+                                "expression": "last(/maxscale-vip/maxscale.host.version,#1)<>last(/maxscale-vip/maxscale.host.version,#2) and length(last(/maxscale-vip/maxscale.host.version,#2))>0",
+                                "name": "Maxscale: Version has changed",
+                                "event_name": "Maxscale: Version has changed (new version value received: {ITEM.VALUE})",
+                                "priority": "INFO",
+                                "description": "Maxscale version has changed. Ack to close",
+                                "manual_close": "YES"
+                            }
+                        ]
+                    }
+                ],
+                "discovery_rules": [
+                    {
+                        "uuid": "4a2693f9abd74555b50d1f9af8b506cd",
+                        "name": "Maxscale listeners name discovery",
+                        "type": "HTTP_AGENT",
+                        "key": "maxscale.listeners.name",
+                        "delay": "1h",
+                        "authtype": "BASIC",
+                        "username": "{$MAXSCALE.HTTP.USER}",
+                        "password": "{$MAXSCALE.HTTP.PASSWORD}",
+                        "item_prototypes": [
+                            {
+                                "uuid": "d35273287f6140a1b147fe44e5b981d2",
+                                "name": "{#MAXSCALE_LISTENER_NAME} listener data",
+                                "type": "HTTP_AGENT",
+                                "key": "maxscale.listener.data[{#MAXSCALE_LISTENER_NAME}]",
+                                "delay": "30s",
+                                "history": "0",
+                                "trends": "0",
+                                "value_type": "TEXT",
+                                "authtype": "BASIC",
+                                "username": "{$MAXSCALE.HTTP.USER}",
+                                "password": "{$MAXSCALE.HTTP.PASSWORD}",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.data"
+                                        ]
+                                    }
+                                ],
+                                "url": "{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/listeners/{#MAXSCALE_LISTENER_NAME}",
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_LISTENER_NAME} listener data"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "3b7546b722d141b790d85aa6117d29e4",
+                                "name": "{#MAXSCALE_LISTENER_NAME} listener state",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.listener.state[{#MAXSCALE_LISTENER_NAME}]",
+                                "delay": "0",
+                                "trends": "0",
+                                "value_type": "TEXT",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.state"
+                                        ]
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.listener.data[{#MAXSCALE_LISTENER_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_LISTENER_NAME} listener data"
+                                    }
+                                ]
+                            }
+                        ],
+                        "url": "{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/listeners",
+                        "lld_macro_paths": [
+                            {
+                                "lld_macro": "{#MAXSCALE_LISTENER_NAME}",
+                                "path": "$.id"
+                            }
+                        ],
+                        "preprocessing": [
+                            {
+                                "type": "JSONPATH",
+                                "parameters": [
+                                    "$.data"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "uuid": "bee49b7d5f7946f48c248d1a05d9f5db",
+                        "name": "Maxscale monitors name discovery",
+                        "type": "HTTP_AGENT",
+                        "key": "maxscale.monitors.name",
+                        "delay": "1h",
+                        "authtype": "BASIC",
+                        "username": "{$MAXSCALE.HTTP.USER}",
+                        "password": "{$MAXSCALE.HTTP.PASSWORD}",
+                        "item_prototypes": [
+                            {
+                                "uuid": "c92d009c84684c9c826691d789123e6f",
+                                "name": "{#MAXSCALE_MONITOR_NAME} monitor data",
+                                "type": "HTTP_AGENT",
+                                "key": "maxscale.monitor.data[{#MAXSCALE_MONITOR_NAME}]",
+                                "delay": "30s",
+                                "history": "0",
+                                "trends": "0",
+                                "value_type": "TEXT",
+                                "authtype": "BASIC",
+                                "username": "{$MAXSCALE.HTTP.USER}",
+                                "password": "{$MAXSCALE.HTTP.PASSWORD}",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.data"
+                                        ]
+                                    }
+                                ],
+                                "url": "{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/monitors/{#MAXSCALE_MONITOR_NAME}",
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_MONITOR_NAME} monitor data"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "144514c9d1234f1bae1fdd7cd3d159be",
+                                "name": "{#MAXSCALE_MONITOR_NAME} monitor state",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.monitor.state[{#MAXSCALE_MONITOR_NAME}]",
+                                "delay": "0",
+                                "trends": "0",
+                                "value_type": "TEXT",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.state"
+                                        ]
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.monitor.data[{#MAXSCALE_MONITOR_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_MONITOR_NAME} monitor data"
+                                    }
+                                ]
+                            }
+                        ],
+                        "url": "{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/monitors",
+                        "lld_macro_paths": [
+                            {
+                                "lld_macro": "{#MAXSCALE_MONITOR_NAME}",
+                                "path": "$.id"
+                            }
+                        ],
+                        "preprocessing": [
+                            {
+                                "type": "JSONPATH",
+                                "parameters": [
+                                    "$.data"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "uuid": "93705f765b6b44ecaa8efd93b632fe7e",
+                        "name": "Maxscale backend servers name discovery",
+                        "type": "HTTP_AGENT",
+                        "key": "maxscale.servers.name",
+                        "delay": "1h",
+                        "authtype": "BASIC",
+                        "username": "{$MAXSCALE.HTTP.USER}",
+                        "password": "{$MAXSCALE.HTTP.PASSWORD}",
+                        "item_prototypes": [
+                            {
+                                "uuid": "db3b513746a642ecb95cb21b528c9343",
+                                "name": "{#MAXSCALE_BACKEND_NAME} statistics max connections",
+                                "type": "DEPENDENT",
+                                "key": "attributes.statistics.max_connections[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "0",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.statistics.max_connections"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale-Sessions"
+                                    },
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "e743e85c4c544622b32a50f8d0e696f5",
+                                "name": "{#MAXSCALE_BACKEND_NAME} statistics reused connections",
+                                "type": "DEPENDENT",
+                                "key": "attributes.statistics.reused_connections[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "0",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.statistics.reused_connections"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale-Sessions"
+                                    },
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "fe83299a87db4c33a319dd97aedc464f",
+                                "name": "{#MAXSCALE_BACKEND_NAME} data",
+                                "type": "HTTP_AGENT",
+                                "key": "maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "30s",
+                                "history": "0",
+                                "trends": "0",
+                                "value_type": "TEXT",
+                                "authtype": "BASIC",
+                                "username": "{$MAXSCALE.HTTP.USER}",
+                                "password": "{$MAXSCALE.HTTP.PASSWORD}",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.data"
+                                        ]
+                                    }
+                                ],
+                                "url": "{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/servers/{#MAXSCALE_BACKEND_NAME}",
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "f63a6b5f9b5d41fd9d7a35701de0bcdc",
+                                "name": "{#MAXSCALE_BACKEND_NAME} query stats avg_selects_per_session",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.server.query_stats.avg_selects_per_session[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "0",
+                                "description": "Average number of selects per session.",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.avg_selects_per_session"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "91f7e4e6d2664e22b8795bc1afafe9e8",
+                                "name": "{#MAXSCALE_BACKEND_NAME} query stats avg_sess_active_pct",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.server.query_stats.avg_sess_active_pct[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "0",
+                                "value_type": "FLOAT",
+                                "description": "Average percentage of time client sessions were active. 0% means connections were opened but never used.",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.avg_sess_active_pct"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    },
+                                    {
+                                        "type": "STR_REPLACE",
+                                        "parameters": [
+                                            "([a-z]+)",
+                                            ""
+                                        ]
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "66a29fac9fd54f90988ed4f5dbac1941",
+                                "name": "{#MAXSCALE_BACKEND_NAME} query stats avg_sess_duration",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.server.query_stats.avg_sess_duration[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "0",
+                                "value_type": "FLOAT",
+                                "units": "min",
+                                "description": "Average duration of a client session to this server.",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.avg_sess_duration"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    },
+                                    {
+                                        "type": "JAVASCRIPT",
+                                        "parameters": [
+                                            "regex = '[a-z]+'\nsuffix = value.match(regex)[0];\nif (suffix == \"ns\")\n    value = parseFloat(value.replace(suffix,'')) / 60000000000;\nelse if (suffix == \"us\")\n    value = parseFloat(value.replace(suffix,'')) / 60000000;\nelse if (suffix == \"ms\")\n    value = parseFloat(value.replace(suffix,'')) / 60000;\nelse if (suffix == \"s\")\n    value = parseFloat(value.replace(suffix,'')) / 60;\nelse if (suffix == \"min\")\n    value = parseFloat(value.replace(suffix,'')) ;\nelse if (suffix == \"h\")\n    value = parseFloat(value.replace(suffix,'')) * 60;\nreturn value;"
+                                        ]
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "ceacbb12e4414b9dba92616df6c5d6c0",
+                                "name": "{#MAXSCALE_BACKEND_NAME} query stats read",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.server.query_stats.read[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "0",
+                                "description": "Total number of reads.",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.read"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "379518ec1fd24246a993137f8123b282",
+                                "name": "{#MAXSCALE_BACKEND_NAME} query stats total",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.server.query_stats.total[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "0",
+                                "description": "Total number of queries.",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.total"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "8ea5c0b43df840fa8ae59a633ce867a4",
+                                "name": "{#MAXSCALE_BACKEND_NAME} query stats write",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.server.query_stats.write[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "0",
+                                "description": "Total number of writes.",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.write"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "50c23fefbe834fde8b140204930e59ce",
+                                "name": "{#MAXSCALE_BACKEND_NAME} server query statistics",
+                                "type": "HTTP_AGENT",
+                                "key": "maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "30s",
+                                "history": "0",
+                                "trends": "0",
+                                "value_type": "TEXT",
+                                "authtype": "BASIC",
+                                "username": "{$MAXSCALE.HTTP.USER}",
+                                "password": "{$MAXSCALE.HTTP.PASSWORD}",
+                                "description": "Statistics for each configured and used server consisting of the following fields.",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$..server_query_statistics.[?(@.id == '{#MAXSCALE_BACKEND_NAME}')].first()"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "url": "{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/services/",
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "da2dd0c4433945dd9c856dc209a9a8b8",
+                                "name": "{#MAXSCALE_BACKEND_NAME} state",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.server.state[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "0",
+                                "trends": "0",
+                                "value_type": "TEXT",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.state"
+                                        ]
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "8c34413db38941eabbe085e0d1e5a16c",
+                                "name": "{#MAXSCALE_BACKEND_NAME} statistics active operations",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.server.statistics.active_operations[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "0",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.statistics.active_operations"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "dbe6c6abfd7d4ecf978c0b8365e345b7",
+                                "name": "{#MAXSCALE_BACKEND_NAME} statistics adaptive average select time",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.server.statistics.adapt_avg_select_time[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "0",
+                                "value_type": "FLOAT",
+                                "units": "ms",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.statistics.adaptive_avg_select_time"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    },
+                                    {
+                                        "type": "JAVASCRIPT",
+                                        "parameters": [
+                                            "regex = '[a-z]+';\nsuffix = value.match(regex);\nif (suffix == \"ps\")\n    value = parseFloat(value.replace(suffix,'')) * (10 ** -9);\nelse if (suffix == \"ns\")\n    value = parseFloat(value.replace(suffix,'')) * (10 ** -6);\nelse if (suffix == \"us\")\n    value = parseFloat(value.replace(suffix,'')) * (10 ** -3);\nelse if (suffix == \"ms\")\n    value = parseFloat(value.replace(suffix,''));\nelse if (suffix == \"cs\")\n    value = parseFloat(value.replace(suffix,'')) * 10;\nelse if (suffix == \"ds\")\n    value = parseFloat(value.replace(suffix,'')) * (10 ** 2);\nelse if (suffix == \"s\")\n    value = parseFloat(value.replace(suffix,'')) * (10 ** 3);\nelse if (suffix == \"min\")\n    value = parseFloat(value.replace(suffix,'')) * 60 * (10 ** 3);\nreturn value;"
+                                        ]
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "9a39e3965dc64807b8e793386c2ae141",
+                                "name": "{#MAXSCALE_BACKEND_NAME} statistics connections",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.server.statistics.connections[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "0",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.statistics.connections"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale-Sessions"
+                                    },
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "7833f2f3a5ac4201aba5be8da783338d",
+                                "name": "{#MAXSCALE_BACKEND_NAME} statistics persistent connections",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.server.statistics.persistent_connections[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "0",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.statistics.persistent_connections"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale-Sessions"
+                                    },
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "ae87b34243254428a66e80e93112fec3",
+                                "name": "{#MAXSCALE_BACKEND_NAME} statistics routed packets",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.server.statistics.route_packets[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "0",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.statistics.routed_packets"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "144720124a684f8d8e0cd28cb9088c58",
+                                "name": "{#MAXSCALE_BACKEND_NAME} statistics total connections",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.server.statistics.total_connections[{#MAXSCALE_BACKEND_NAME}]",
+                                "delay": "0",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.statistics.total_connections"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale-Sessions"
+                                    },
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_BACKEND_NAME} backend stats"
+                                    }
+                                ]
+                            }
+                        ],
+                        "graph_prototypes": [
+                            {
+                                "uuid": "029ec944c51c424cb91ec5aaf05e47f6",
+                                "name": "SQL Proxy View - {#MAXSCALE_BACKEND_NAME}: Queries",
+                                "graph_items": [
+                                    {
+                                        "sortorder": "1",
+                                        "color": "1A7C11",
+                                        "item": {
+                                            "host": "maxscale-vip",
+                                            "key": "maxscale.server.query_stats.read[{#MAXSCALE_BACKEND_NAME}]"
+                                        }
+                                    },
+                                    {
+                                        "sortorder": "2",
+                                        "color": "F63100",
+                                        "item": {
+                                            "host": "maxscale-vip",
+                                            "key": "maxscale.server.query_stats.write[{#MAXSCALE_BACKEND_NAME}]"
+                                        }
+                                    },
+                                    {
+                                        "sortorder": "3",
+                                        "color": "2774A4",
+                                        "item": {
+                                            "host": "maxscale-vip",
+                                            "key": "maxscale.server.query_stats.total[{#MAXSCALE_BACKEND_NAME}]"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "db56651670f0434580ad09daaf10fdde",
+                                "name": "SQL Proxy View: Queries - {#MAXSCALE_BACKEND_NAME}: Adaptive Average Select Time",
+                                "graph_items": [
+                                    {
+                                        "sortorder": "1",
+                                        "color": "1A7C11",
+                                        "item": {
+                                            "host": "maxscale-vip",
+                                            "key": "maxscale.server.statistics.adapt_avg_select_time[{#MAXSCALE_BACKEND_NAME}]"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "6ea61f17a3c5435a8f4e992fd965fc87",
+                                "name": "SQL Proxy View: {#MAXSCALE_BACKEND_NAME}  Persistent Connections",
+                                "graph_items": [
+                                    {
+                                        "sortorder": "1",
+                                        "color": "1A7C11",
+                                        "item": {
+                                            "host": "maxscale-vip",
+                                            "key": "maxscale.server.statistics.persistent_connections[{#MAXSCALE_BACKEND_NAME}]"
+                                        }
+                                    }
+                                ]
+                            }
+                        ],
+                        "timeout": "5s",
+                        "url": "{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/servers",
+                        "lld_macro_paths": [
+                            {
+                                "lld_macro": "{#MAXSCALE_BACKEND_NAME}",
+                                "path": "$.name"
+                            }
+                        ],
+                        "preprocessing": [
+                            {
+                                "type": "JSONPATH",
+                                "parameters": [
+                                    "$.data[:].attributes"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "uuid": "5dfcccb3c33d43ceb29db9a931f20cd3",
+                        "name": "Maxscale services name discovery",
+                        "type": "HTTP_AGENT",
+                        "key": "maxscale.services.name",
+                        "delay": "1h",
+                        "authtype": "BASIC",
+                        "username": "{$MAXSCALE.HTTP.USER}",
+                        "password": "{$MAXSCALE.HTTP.PASSWORD}",
+                        "item_prototypes": [
+                            {
+                                "uuid": "b56a5e1c61674f2a8dbd104f9514db89",
+                                "name": "{#MAXSCALE_SERVICE_NAME} service data",
+                                "type": "HTTP_AGENT",
+                                "key": "maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]",
+                                "delay": "30s",
+                                "history": "0",
+                                "trends": "0",
+                                "value_type": "TEXT",
+                                "authtype": "BASIC",
+                                "username": "{$MAXSCALE.HTTP.USER}",
+                                "password": "{$MAXSCALE.HTTP.PASSWORD}",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.data"
+                                        ]
+                                    }
+                                ],
+                                "url": "{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/services/{#MAXSCALE_SERVICE_NAME}",
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_SERVICE_NAME} service data"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "4c99b547d7424fc8b46ca4af73d39be2",
+                                "name": "{#MAXSCALE_SERVICE_NAME} service queries executed",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.service.queries[{#MAXSCALE_SERVICE_NAME}]",
+                                "delay": "0",
+                                "description": "Number of queries executed through this service.",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.router_diagnostics.queries"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_SERVICE_NAME} service data"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "b13ca0d6c7534b3d8ff89658fe977303",
+                                "name": "{#MAXSCALE_SERVICE_NAME} service replayed transactions",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.service.replayed_transactions[{#MAXSCALE_SERVICE_NAME}]",
+                                "delay": "0",
+                                "description": "Number of replayed transactions.",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.router_diagnostics.replayed_transactions"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_SERVICE_NAME} service data"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "f64a2bf921e84c3b80e10dfbdc39bdbb",
+                                "name": "{#MAXSCALE_SERVICE_NAME} service queries routed all",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.service.route_all[{#MAXSCALE_SERVICE_NAME}]",
+                                "delay": "0",
+                                "description": "Number of session commands routed to all servers.",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.router_diagnostics.route_all"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_SERVICE_NAME} service data"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "177e5e80bf9647e8981ea915afa81c1b",
+                                "name": "{#MAXSCALE_SERVICE_NAME} service queries routed to master",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.service.route_master[{#MAXSCALE_SERVICE_NAME}]",
+                                "delay": "0",
+                                "description": "Number of writes routed to master.",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.router_diagnostics.route_master"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_SERVICE_NAME} service data"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "e58733ac73bb4ed0869a5c1fbdc4144d",
+                                "name": "{#MAXSCALE_SERVICE_NAME} service queries routed to slave",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.service.route_slave[{#MAXSCALE_SERVICE_NAME}]",
+                                "delay": "0",
+                                "description": "Number of reads routed to slaves.",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.router_diagnostics.route_slave"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_SERVICE_NAME} service data"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "563afc1a361b48478b8431897b2aad32",
+                                "name": "{#MAXSCALE_SERVICE_NAME} service explicit  read-only transactions",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.service.ro_transactions[{#MAXSCALE_SERVICE_NAME}]",
+                                "delay": "0",
+                                "description": "Number of explicit read-only transactions",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.router_diagnostics.ro_transactions"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_SERVICE_NAME} service data"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "90338c9bb3d1448694d6ab7461d0adb1",
+                                "name": "{#MAXSCALE_SERVICE_NAME} service explicit read-write transactions",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.service.rw_transactions[{#MAXSCALE_SERVICE_NAME}]",
+                                "delay": "0",
+                                "description": "Number of explicit read-write transactions.",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.router_diagnostics.rw_transactions"
+                                        ],
+                                        "error_handler": "DISCARD_VALUE"
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_SERVICE_NAME} service data"
+                                    }
+                                ]
+                            },
+                            {
+                                "uuid": "07bf57a122ea44c982105ac51ed70393",
+                                "name": "{#MAXSCALE_SERVICE_NAME} service state",
+                                "type": "DEPENDENT",
+                                "key": "maxscale.service.state[{#MAXSCALE_SERVICE_NAME}]",
+                                "delay": "0",
+                                "trends": "0",
+                                "value_type": "TEXT",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.attributes.state"
+                                        ]
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]"
+                                },
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale {#MAXSCALE_SERVICE_NAME} service data"
+                                    }
+                                ]
+                            }
+                        ],
+                        "url": "{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/services",
+                        "lld_macro_paths": [
+                            {
+                                "lld_macro": "{#MAXSCALE_SERVICE_NAME}",
+                                "path": "$.id"
+                            }
+                        ],
+                        "preprocessing": [
+                            {
+                                "type": "JSONPATH",
+                                "parameters": [
+                                    "$.data"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "uuid": "dff7900f4a20489293cabe06c015f298",
+                        "name": "Maxscale session discovery",
+                        "type": "HTTP_AGENT",
+                        "key": "maxscale.session.ip",
+                        "delay": "30m",
+                        "authtype": "BASIC",
+                        "username": "{$MAXSCALE.HTTP.USER}",
+                        "password": "{$MAXSCALE.HTTP.PASSWORD}",
+                        "lifetime": "20d",
+                        "item_prototypes": [
+                            {
+                                "uuid": "0fcb6e4a295d43138fc68be6b39283ff",
+                                "name": "{#MAXSCALE_SESSION_IP} number of connections",
+                                "type": "HTTP_AGENT",
+                                "key": "maxscale.session.data[{#MAXSCALE_SESSION_IP}]",
+                                "delay": "30s",
+                                "authtype": "BASIC",
+                                "username": "{$MAXSCALE.HTTP.USER}",
+                                "password": "{$MAXSCALE.HTTP.PASSWORD}",
+                                "preprocessing": [
+                                    {
+                                        "type": "JSONPATH",
+                                        "parameters": [
+                                            "$.data[?(@.attributes.remote == '{#MAXSCALE_SESSION_IP}')].length()"
+                                        ],
+                                        "error_handler": "CUSTOM_VALUE",
+                                        "error_handler_params": "0"
+                                    }
+                                ],
+                                "url": "{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/sessions/",
+                                "tags": [
+                                    {
+                                        "tag": "Application",
+                                        "value": "Maxscale-Sessions"
+                                    }
+                                ]
+                            }
+                        ],
+                        "url": "{$MAXSCALE.HTTP.SCHEMA}{$MAXSCALE.HTTP.ADDRESS}:{$MAXSCALE.HTTP.PORT}/v1/sessions",
+                        "lld_macro_paths": [
+                            {
+                                "lld_macro": "{#MAXSCALE_SESSION_IP}",
+                                "path": "$.ip"
+                            }
+                        ],
+                        "preprocessing": [
+                            {
+                                "type": "JSONPATH",
+                                "parameters": [
+                                    "$.data[*].attributes.remote"
+                                ]
+                            },
+                            {
+                                "type": "STR_REPLACE",
+                                "parameters": [
+                                    "[",
+                                    ""
+                                ]
+                            },
+                            {
+                                "type": "STR_REPLACE",
+                                "parameters": [
+                                    "]",
+                                    ""
+                                ]
+                            },
+                            {
+                                "type": "STR_REPLACE",
+                                "parameters": [
+                                    "\"",
+                                    ""
+                                ]
+                            },
+                            {
+                                "type": "JAVASCRIPT",
+                                "parameters": [
+                                    "ips=value.split(\",\");\njson_ips='{\"data\":[';\nlist_ips=[];\nfor (i=0; i < ips.length; i++){\n   if(list_ips.indexOf(ips[i]) < 0) {\n    json_ips+='{\"ip\":\"' + ips[i] + '\"},';\n    list_ips.push(ips[i]);\n   }\n}\njson_ips = json_ips.substr(0, json_ips.lastIndexOf(',')) + ''\njson_ips+=']}';\nreturn json_ips;"
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "tags": [
+                    {
+                        "tag": "application",
+                        "value": "maxscale"
+                    }
+                ],
+                "macros": [
+                    {
+                        "macro": "{$MAXSCALE.HTTP.ADDRESS}"
+                    },
+                    {
+                        "macro": "{$MAXSCALE.HTTP.PASSWORD}",
+                        "value": "mariadb"
+                    },
+                    {
+                        "macro": "{$MAXSCALE.HTTP.PORT}",
+                        "value": "8989"
+                    },
+                    {
+                        "macro": "{$MAXSCALE.HTTP.SCHEMA}",
+                        "value": "http://"
+                    },
+                    {
+                        "macro": "{$MAXSCALE.HTTP.USER}",
+                        "value": "admin"
+                    }
+                ]
+            }
+        ]
+    }
+}
