@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.0'
-  date: '2022-12-19T08:04:46Z'
+  date: '2023-01-09T10:20:16Z'
   groups:
     -
       uuid: db8c6a5e33a54db7a8016e92a3737c99
@@ -243,12 +243,17 @@ zabbix_export:
               type: DEPENDENT
               key: 'attributes.statistics.reused_connections[{#MAXSCALE_BACKEND_NAME}]'
               delay: '0'
+              value_type: FLOAT
               preprocessing:
                 -
                   type: JSONPATH
                   parameters:
                     - $.attributes.statistics.reused_connections
                   error_handler: DISCARD_VALUE
+                -
+                  type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
               master_item:
                 key: 'maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]'
               tags:
@@ -370,13 +375,18 @@ zabbix_export:
               type: DEPENDENT
               key: 'maxscale.server.query_stats.read[{#MAXSCALE_BACKEND_NAME}]'
               delay: '0'
-              description: 'Total number of reads.'
+              value_type: FLOAT
+              description: 'Changes per second of reads.'
               preprocessing:
                 -
                   type: JSONPATH
                   parameters:
                     - $.read
                   error_handler: DISCARD_VALUE
+                -
+                  type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
               master_item:
                 key: 'maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]'
               tags:
@@ -389,13 +399,18 @@ zabbix_export:
               type: DEPENDENT
               key: 'maxscale.server.query_stats.total[{#MAXSCALE_BACKEND_NAME}]'
               delay: '0'
-              description: 'Total number of queries.'
+              value_type: FLOAT
+              description: 'Changes per second of queries.'
               preprocessing:
                 -
                   type: JSONPATH
                   parameters:
                     - $.total
                   error_handler: DISCARD_VALUE
+                -
+                  type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
               master_item:
                 key: 'maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]'
               tags:
@@ -408,13 +423,18 @@ zabbix_export:
               type: DEPENDENT
               key: 'maxscale.server.query_stats.write[{#MAXSCALE_BACKEND_NAME}]'
               delay: '0'
-              description: 'Total number of writes.'
+              value_type: FLOAT
+              description: 'Changes per second of writes.'
               preprocessing:
                 -
                   type: JSONPATH
                   parameters:
                     - $.write
                   error_handler: DISCARD_VALUE
+                -
+                  type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
               master_item:
                 key: 'maxscale.server.query_stats[{#MAXSCALE_BACKEND_NAME}]'
               tags:
@@ -573,12 +593,17 @@ zabbix_export:
               type: DEPENDENT
               key: 'maxscale.server.statistics.route_packets[{#MAXSCALE_BACKEND_NAME}]'
               delay: '0'
+              value_type: FLOAT
               preprocessing:
                 -
                   type: JSONPATH
                   parameters:
                     - $.attributes.statistics.routed_packets
                   error_handler: DISCARD_VALUE
+                -
+                  type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
               master_item:
                 key: 'maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]'
               tags:
@@ -591,12 +616,17 @@ zabbix_export:
               type: DEPENDENT
               key: 'maxscale.server.statistics.total_connections[{#MAXSCALE_BACKEND_NAME}]'
               delay: '0'
+              value_type: FLOAT
               preprocessing:
                 -
                   type: JSONPATH
                   parameters:
                     - $.attributes.statistics.total_connections
                   error_handler: DISCARD_VALUE
+                -
+                  type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
               master_item:
                 key: 'maxscale.server.data[{#MAXSCALE_BACKEND_NAME}]'
               tags:
@@ -698,13 +728,18 @@ zabbix_export:
               type: DEPENDENT
               key: 'maxscale.service.queries[{#MAXSCALE_SERVICE_NAME}]'
               delay: '0'
-              description: 'Number of queries executed through this service.'
+              value_type: FLOAT
+              description: 'Changes per second of queries executed through this service.'
               preprocessing:
                 -
                   type: JSONPATH
                   parameters:
                     - $.attributes.router_diagnostics.queries
                   error_handler: DISCARD_VALUE
+                -
+                  type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
               master_item:
                 key: 'maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]'
               tags:
@@ -732,17 +767,22 @@ zabbix_export:
                   value: 'Maxscale {#MAXSCALE_SERVICE_NAME} service data'
             -
               uuid: f64a2bf921e84c3b80e10dfbdc39bdbb
-              name: '{#MAXSCALE_SERVICE_NAME} service queries routed all'
+              name: '{#MAXSCALE_SERVICE_NAME} service session commands routed to all servers'
               type: DEPENDENT
               key: 'maxscale.service.route_all[{#MAXSCALE_SERVICE_NAME}]'
               delay: '0'
-              description: 'Number of session commands routed to all servers.'
+              value_type: FLOAT
+              description: 'Changes per second of number session commands routed to all servers.'
               preprocessing:
                 -
                   type: JSONPATH
                   parameters:
                     - $.attributes.router_diagnostics.route_all
                   error_handler: DISCARD_VALUE
+                -
+                  type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
               master_item:
                 key: 'maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]'
               tags:
@@ -755,13 +795,18 @@ zabbix_export:
               type: DEPENDENT
               key: 'maxscale.service.route_master[{#MAXSCALE_SERVICE_NAME}]'
               delay: '0'
-              description: 'Number of writes routed to master.'
+              value_type: FLOAT
+              description: 'Changes per second of writes routed to master.'
               preprocessing:
                 -
                   type: JSONPATH
                   parameters:
                     - $.attributes.router_diagnostics.route_master
                   error_handler: DISCARD_VALUE
+                -
+                  type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
               master_item:
                 key: 'maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]'
               tags:
@@ -774,13 +819,18 @@ zabbix_export:
               type: DEPENDENT
               key: 'maxscale.service.route_slave[{#MAXSCALE_SERVICE_NAME}]'
               delay: '0'
-              description: 'Number of reads routed to slaves.'
+              value_type: FLOAT
+              description: 'Changes per second of reads routed to slaves.'
               preprocessing:
                 -
                   type: JSONPATH
                   parameters:
                     - $.attributes.router_diagnostics.route_slave
                   error_handler: DISCARD_VALUE
+                -
+                  type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
               master_item:
                 key: 'maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]'
               tags:
@@ -793,13 +843,18 @@ zabbix_export:
               type: DEPENDENT
               key: 'maxscale.service.ro_transactions[{#MAXSCALE_SERVICE_NAME}]'
               delay: '0'
-              description: 'Number of explicit read-only transactions'
+              value_type: FLOAT
+              description: 'Changes per second of explicit read-only transactions'
               preprocessing:
                 -
                   type: JSONPATH
                   parameters:
                     - $.attributes.router_diagnostics.ro_transactions
                   error_handler: DISCARD_VALUE
+                -
+                  type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
               master_item:
                 key: 'maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]'
               tags:
@@ -812,13 +867,18 @@ zabbix_export:
               type: DEPENDENT
               key: 'maxscale.service.rw_transactions[{#MAXSCALE_SERVICE_NAME}]'
               delay: '0'
-              description: 'Number of explicit read-write transactions.'
+              value_type: FLOAT
+              description: 'Changes per second of explicit read-write transactions.'
               preprocessing:
                 -
                   type: JSONPATH
                   parameters:
                     - $.attributes.router_diagnostics.rw_transactions
                   error_handler: DISCARD_VALUE
+                -
+                  type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
               master_item:
                 key: 'maxscale.service.data[{#MAXSCALE_SERVICE_NAME}]'
               tags:

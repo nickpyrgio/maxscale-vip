@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>6.0</version>
-    <date>2022-12-19T08:05:05Z</date>
+    <date>2023-01-09T10:20:21Z</date>
     <groups>
         <group>
             <uuid>db8c6a5e33a54db7a8016e92a3737c99</uuid>
@@ -315,6 +315,7 @@
                             <type>DEPENDENT</type>
                             <key>attributes.statistics.reused_connections[{#MAXSCALE_BACKEND_NAME}]</key>
                             <delay>0</delay>
+                            <value_type>FLOAT</value_type>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -322,6 +323,12 @@
                                         <parameter>$.attributes.statistics.reused_connections</parameter>
                                     </parameters>
                                     <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
                                 </step>
                             </preprocessing>
                             <master_item>
@@ -480,7 +487,8 @@ return value;</parameter>
                             <type>DEPENDENT</type>
                             <key>maxscale.server.query_stats.read[{#MAXSCALE_BACKEND_NAME}]</key>
                             <delay>0</delay>
-                            <description>Total number of reads.</description>
+                            <value_type>FLOAT</value_type>
+                            <description>Changes per second of reads.</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -488,6 +496,12 @@ return value;</parameter>
                                         <parameter>$.read</parameter>
                                     </parameters>
                                     <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
                                 </step>
                             </preprocessing>
                             <master_item>
@@ -506,7 +520,8 @@ return value;</parameter>
                             <type>DEPENDENT</type>
                             <key>maxscale.server.query_stats.total[{#MAXSCALE_BACKEND_NAME}]</key>
                             <delay>0</delay>
-                            <description>Total number of queries.</description>
+                            <value_type>FLOAT</value_type>
+                            <description>Changes per second of queries.</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -514,6 +529,12 @@ return value;</parameter>
                                         <parameter>$.total</parameter>
                                     </parameters>
                                     <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
                                 </step>
                             </preprocessing>
                             <master_item>
@@ -532,7 +553,8 @@ return value;</parameter>
                             <type>DEPENDENT</type>
                             <key>maxscale.server.query_stats.write[{#MAXSCALE_BACKEND_NAME}]</key>
                             <delay>0</delay>
-                            <description>Total number of writes.</description>
+                            <value_type>FLOAT</value_type>
+                            <description>Changes per second of writes.</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -540,6 +562,12 @@ return value;</parameter>
                                         <parameter>$.write</parameter>
                                     </parameters>
                                     <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
                                 </step>
                             </preprocessing>
                             <master_item>
@@ -748,6 +776,7 @@ return value;</parameter>
                             <type>DEPENDENT</type>
                             <key>maxscale.server.statistics.route_packets[{#MAXSCALE_BACKEND_NAME}]</key>
                             <delay>0</delay>
+                            <value_type>FLOAT</value_type>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -755,6 +784,12 @@ return value;</parameter>
                                         <parameter>$.attributes.statistics.routed_packets</parameter>
                                     </parameters>
                                     <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
                                 </step>
                             </preprocessing>
                             <master_item>
@@ -773,6 +808,7 @@ return value;</parameter>
                             <type>DEPENDENT</type>
                             <key>maxscale.server.statistics.total_connections[{#MAXSCALE_BACKEND_NAME}]</key>
                             <delay>0</delay>
+                            <value_type>FLOAT</value_type>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -780,6 +816,12 @@ return value;</parameter>
                                         <parameter>$.attributes.statistics.total_connections</parameter>
                                     </parameters>
                                     <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
                                 </step>
                             </preprocessing>
                             <master_item>
@@ -918,7 +960,8 @@ return value;</parameter>
                             <type>DEPENDENT</type>
                             <key>maxscale.service.queries[{#MAXSCALE_SERVICE_NAME}]</key>
                             <delay>0</delay>
-                            <description>Number of queries executed through this service.</description>
+                            <value_type>FLOAT</value_type>
+                            <description>Changes per second of queries executed through this service.</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -926,6 +969,12 @@ return value;</parameter>
                                         <parameter>$.attributes.router_diagnostics.queries</parameter>
                                     </parameters>
                                     <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
                                 </step>
                             </preprocessing>
                             <master_item>
@@ -966,11 +1015,12 @@ return value;</parameter>
                         </item_prototype>
                         <item_prototype>
                             <uuid>f64a2bf921e84c3b80e10dfbdc39bdbb</uuid>
-                            <name>{#MAXSCALE_SERVICE_NAME} service queries routed all</name>
+                            <name>{#MAXSCALE_SERVICE_NAME} service session commands routed to all servers</name>
                             <type>DEPENDENT</type>
                             <key>maxscale.service.route_all[{#MAXSCALE_SERVICE_NAME}]</key>
                             <delay>0</delay>
-                            <description>Number of session commands routed to all servers.</description>
+                            <value_type>FLOAT</value_type>
+                            <description>Changes per second of number session commands routed to all servers.</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -978,6 +1028,12 @@ return value;</parameter>
                                         <parameter>$.attributes.router_diagnostics.route_all</parameter>
                                     </parameters>
                                     <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
                                 </step>
                             </preprocessing>
                             <master_item>
@@ -996,7 +1052,8 @@ return value;</parameter>
                             <type>DEPENDENT</type>
                             <key>maxscale.service.route_master[{#MAXSCALE_SERVICE_NAME}]</key>
                             <delay>0</delay>
-                            <description>Number of writes routed to master.</description>
+                            <value_type>FLOAT</value_type>
+                            <description>Changes per second of writes routed to master.</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -1004,6 +1061,12 @@ return value;</parameter>
                                         <parameter>$.attributes.router_diagnostics.route_master</parameter>
                                     </parameters>
                                     <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
                                 </step>
                             </preprocessing>
                             <master_item>
@@ -1022,7 +1085,8 @@ return value;</parameter>
                             <type>DEPENDENT</type>
                             <key>maxscale.service.route_slave[{#MAXSCALE_SERVICE_NAME}]</key>
                             <delay>0</delay>
-                            <description>Number of reads routed to slaves.</description>
+                            <value_type>FLOAT</value_type>
+                            <description>Changes per second of reads routed to slaves.</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -1030,6 +1094,12 @@ return value;</parameter>
                                         <parameter>$.attributes.router_diagnostics.route_slave</parameter>
                                     </parameters>
                                     <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
                                 </step>
                             </preprocessing>
                             <master_item>
@@ -1048,7 +1118,8 @@ return value;</parameter>
                             <type>DEPENDENT</type>
                             <key>maxscale.service.ro_transactions[{#MAXSCALE_SERVICE_NAME}]</key>
                             <delay>0</delay>
-                            <description>Number of explicit read-only transactions</description>
+                            <value_type>FLOAT</value_type>
+                            <description>Changes per second of explicit read-only transactions</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -1056,6 +1127,12 @@ return value;</parameter>
                                         <parameter>$.attributes.router_diagnostics.ro_transactions</parameter>
                                     </parameters>
                                     <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
                                 </step>
                             </preprocessing>
                             <master_item>
@@ -1074,7 +1151,8 @@ return value;</parameter>
                             <type>DEPENDENT</type>
                             <key>maxscale.service.rw_transactions[{#MAXSCALE_SERVICE_NAME}]</key>
                             <delay>0</delay>
-                            <description>Number of explicit read-write transactions.</description>
+                            <value_type>FLOAT</value_type>
+                            <description>Changes per second of explicit read-write transactions.</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -1082,6 +1160,12 @@ return value;</parameter>
                                         <parameter>$.attributes.router_diagnostics.rw_transactions</parameter>
                                     </parameters>
                                     <error_handler>DISCARD_VALUE</error_handler>
+                                </step>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
                                 </step>
                             </preprocessing>
                             <master_item>
